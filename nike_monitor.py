@@ -275,63 +275,32 @@ class NikeMonitor:
             return False
     
     def format_notification(self, products):
-    """Format notification message"""
-    if not products:
-        return f"🔍 **Nike Monitor Status**\n\n**Status:** No AF1 City Pack Paris found\n**Time:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}\n**Next check:** 5 minutes"
-    
-    message_lines = ["🚨 **NIKE ALERT — AF1 City Pack Paris (Patent)**\n"]
-    
-    for product in products:
-        message_lines.append(f"**Product:** {product['name']}")
-        message_lines.append(f"**Price:** {product['price']}")
+        """Format notification message"""
+        if not products:
+            return f"🔍 **Nike Monitor Status**\n\n**Status:** No AF1 City Pack Paris found\n**Time:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}\n**Next check:** 5 minutes"
         
-        if product['sizes']:
-            sizes_str = ", ".join(product['sizes'])
-            message_lines.append(f"**Available Sizes:** {sizes_str}")
-        else:
-            message_lines.append("**Sizes:** Check website")
+        message_lines = ["🚨 **NIKE ALERT — AF1 City Pack Paris (Patent)**\n"]
         
-        message_lines.append(f"**Time:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}")
-        message_lines.append(f"🛒 **BUY NOW:** {product['link']}")
-        message_lines.append("")  # Empty line between products
-    
-    return "\n".join(message_lines)
+        for product in products:
+            message_lines.append(f"**Product:** {product['name']}")
+            message_lines.append(f"**Price:** {product['price']}")
+            
+            if product['sizes']:
+                sizes_str = ", ".join(product['sizes'])
+                message_lines.append(f"**Available Sizes:** {sizes_str}")
+            else:
+                message_lines.append("**Sizes:** Check website")
+            
+            message_lines.append(f"**Time:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}")
+            message_lines.append(f"🛒 **BUY NOW:** {product['link']}")
+            message_lines.append("")  # Empty line between products
+        
+        return "\n".join(message_lines)
     
     def should_notify(self, products):
-    """Check if we should send notification (simple deduplication)"""
-    if not products:
+        """Check if we should send notification (always notify now)"""
+        # Always return True to send notifications every time
         return True
-        
-        # Load previous state
-        try:
-            with open('last_notification.json', 'r') as f:
-                last_state = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            last_state = {}
-        
-        # Create current state
-        current_state = {}
-        for product in products:
-            product_id = product['link'].split('/')[-1] if product['link'] else product['name']
-            current_state[product_id] = {
-                'name': product['name'],
-                'price': product['price'],
-                'sizes': sorted(product['sizes']),
-                'in_stock': product['in_stock']
-            }
-        
-        # Compare states
-        if current_state != last_state:
-            # Save new state
-            try:
-                with open('last_notification.json', 'w') as f:
-                    json.dump(current_state, f, indent=2)
-            except Exception as e:
-                self.logger.error(f"Error saving state: {e}")
-            
-            return True
-        
-        return False
     
     def run(self):
         """Main run loop"""
