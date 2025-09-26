@@ -278,24 +278,24 @@ class NikeMonitor:
     """Format notification message"""
     if not products:
         return f"🔍 **Nike Monitor Status**\n\n**Status:** No AF1 City Pack Paris found\n**Time:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}\n**Next check:** 5 minutes"
+    
+    message_lines = ["🚨 **NIKE ALERT — AF1 City Pack Paris (Patent)**\n"]
+    
+    for product in products:
+        message_lines.append(f"**Product:** {product['name']}")
+        message_lines.append(f"**Price:** {product['price']}")
         
-        message_lines = ["🚨 **NIKE ALERT — AF1 City Pack Paris (Patent)**\n"]
+        if product['sizes']:
+            sizes_str = ", ".join(product['sizes'])
+            message_lines.append(f"**Available Sizes:** {sizes_str}")
+        else:
+            message_lines.append("**Sizes:** Check website")
         
-        for product in products:
-            message_lines.append(f"**Product:** {product['name']}")
-            message_lines.append(f"**Price:** {product['price']}")
-            
-            if product['sizes']:
-                sizes_str = ", ".join(product['sizes'])
-                message_lines.append(f"**Available Sizes:** {sizes_str}")
-            else:
-                message_lines.append("**Sizes:** Check website")
-            
-            message_lines.append(f"**Time:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}")
-            message_lines.append(f"🛒 **BUY NOW:** {product['link']}")
-            message_lines.append("")  # Empty line between products
-        
-        return "\n".join(message_lines)
+        message_lines.append(f"**Time:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}")
+        message_lines.append(f"🛒 **BUY NOW:** {product['link']}")
+        message_lines.append("")  # Empty line between products
+    
+    return "\n".join(message_lines)
     
     def should_notify(self, products):
     """Check if we should send notification (simple deduplication)"""
