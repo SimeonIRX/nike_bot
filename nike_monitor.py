@@ -275,9 +275,9 @@ class NikeMonitor:
             return False
     
     def format_notification(self, products):
-        """Format notification message"""
-        if not products:
-            return None
+    """Format notification message"""
+    if not products:
+        return f"🔍 **Nike Monitor Status**\n\n**Status:** No AF1 City Pack Paris found\n**Time:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}\n**Next check:** 5 minutes"
         
         message_lines = ["🚨 **NIKE ALERT — AF1 City Pack Paris (Patent)**\n"]
         
@@ -298,9 +298,9 @@ class NikeMonitor:
         return "\n".join(message_lines)
     
     def should_notify(self, products):
-        """Check if we should send notification (simple deduplication)"""
-        if not products:
-            return False
+    """Check if we should send notification (simple deduplication)"""
+    if not products:
+        return True
         
         # Load previous state
         try:
@@ -345,7 +345,7 @@ class NikeMonitor:
                 self.logger.info("Checking Nike for availability...")
                 products = self.check_nike_availability()
                 
-                if products and self.should_notify(products):
+                if self.should_notify(products):
                     notification_message = self.format_notification(products)
                     
                     if notification_message:
