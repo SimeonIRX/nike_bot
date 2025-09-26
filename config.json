@@ -1,9 +1,46 @@
 {
-  "search_terms": ["Nike Air Force 1 Low", "City Pack Paris", "Patent"],
-  "nike_search_url": "https://www.nike.com/w/air-force-1-aq0113",
+  "search_terms": ["Nike Air Force 1", "City Pack", "Paris"],
   "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
   "check_interval": 60,
   "single_run": false,
+  "countries": {
+    "germany": {
+      "nike_search_url": "https://www.nike.com/de/w/air-force-1-aq0113",
+      "currency": "EUR",
+      "enabled": true,
+      "country_code": "DE"
+    },
+    "switzerland": {
+      "nike_search_url": "https://www.nike.com/ch/de/w/air-force-1-aq0113",
+      "currency": "CHF",
+      "enabled": true,
+      "country_code": "CH"
+    },
+    "austria": {
+      "nike_search_url": "https://www.nike.com/at/w/air-force-1-aq0113",
+      "currency": "EUR",
+      "enabled": true,
+      "country_code": "AT"
+    },
+    "netherlands": {
+      "nike_search_url": "https://www.nike.com/nl/w/air-force-1-aq0113",
+      "currency": "EUR",
+      "enabled": false,
+      "country_code": "NL"
+    },
+    "france": {
+      "nike_search_url": "https://www.nike.com/fr/w/air-force-1-aq0113",
+      "currency": "EUR",
+      "enabled": false,
+      "country_code": "FR"
+    },
+    "italy": {
+      "nike_search_url": "https://www.nike.com/it/w/air-force-1-aq0113",
+      "currency": "EUR",
+      "enabled": false,
+      "country_code": "IT"
+    }
+  },
   "email_notifications": {
     "enabled": false,
     "smtp_server": "smtp.gmail.com",
