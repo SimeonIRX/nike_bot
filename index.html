@@ -365,7 +365,7 @@
 
         <div class="monitoring-status">
             <h3>🤖 Bot Monitoring</h3>
-            <p>Automatische Überprüfung alle 5 Minuten</p>
+            <p>Nächste Überprüfung in: <span id="nextCheckCountdown" style="font-weight: bold; color: #f39c12;">--</span></p>
             <p class="last-check">Letzte Überprüfung: <span id="lastCheck">--</span></p>
         </div>
     </div>
@@ -399,10 +399,32 @@
             }
         }
 
-        // Update last check time
+        // Update last check time and start 5-minute countdown
+        let nextCheckTime = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes from now
+
         function updateLastCheck() {
             const now = new Date();
             document.getElementById('lastCheck').textContent = now.toLocaleString('de-DE');
+            // Reset next check time to 5 minutes from now
+            nextCheckTime = new Date(now.getTime() + 5 * 60 * 1000);
+        }
+
+        function updateNextCheckCountdown() {
+            const now = new Date();
+            const diff = nextCheckTime - now;
+
+            if (diff > 0) {
+                const totalSeconds = Math.floor(diff / 1000);
+                const minutes = Math.floor(totalSeconds / 60);
+                const seconds = totalSeconds % 60;
+                
+                document.getElementById('nextCheckCountdown').textContent = 
+                    `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            } else {
+                // Time's up - simulate a new check
+                document.getElementById('nextCheckCountdown').textContent = '0:00';
+                updateLastCheck(); // This resets the countdown
+            }
         }
 
         // Initialize
@@ -411,8 +433,9 @@
 
         // Update every second
         setInterval(updateCountdown, 1000);
+        setInterval(updateNextCheckCountdown, 1000);
         
-        // Simulate bot check updates every 5 minutes
+        // Simulate bot check updates every 5 minutes (for demo purposes)
         setInterval(updateLastCheck, 5 * 60 * 1000);
 
         // Add some interactivity
