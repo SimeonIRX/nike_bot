@@ -1,0 +1,90 @@
+name: Nike Monitor Bot
+
+on:
+  schedule:
+    # Run every 5 minutes (GitHub Actions minimum)
+    - cron: '*/5 * * * *'
+  workflow_dispatch: # Allows manual triggering
+  push:
+    branches: [ main ]
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Cache state file
+      uses: actions/cache@v3
+      with:
+        path: |
+          last_notification.json
+          nike_monitor.log
+        key: nike-state-${{ github.sha }}
+        restore-keys: |
+          nike-state-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Create config from environment
+      run: |
+        cat > config.json << EOF
+        {
+          "search_terms": ["Nike Air Force 1 Low", "City Pack Paris", "Patent"],
+          "nike_search_url": "https://www.nike.com/w/air-force-1-aq0113",
+          "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          "check_interval": 30,
+          "single_run": true,
+          "email_notifications": {
+            "enabled": ${{ secrets.EMAIL_ENABLED || 'false' }},
+            "smtp_server": "${{ secrets.SMTP_SERVER || 'smtp.gmail.com' }}",
+            "smtp_port": ${{ secrets.SMTP_PORT || 587 }},
+            "sender_email": "${{ secrets.SENDER_EMAIL }}",
+            "sender_password": "${{ secrets.SENDER_PASSWORD }}",
+            "recipient_email": "${{ secrets.RECIPIENT_EMAIL }}"
+          },
+          "telegram": {
+            "enabled": ${{ secrets.TELEGRAM_ENABLED || 'true' }},
+            "bot_token": "${{ secrets.TELEGRAM_BOT_TOKEN }}",
+            "chat_id": "${{ secrets.TELEGRAM_CHAT_ID }}"
+          },
+          "discord_webhook": {
+            "enabled": ${{ secrets.DISCORD_ENABLED || 'false' }},
+            "webhook_url": "${{ secrets.DISCORD_WEBHOOK_URL }}"
+          }
+        }
+        EOF
+    
+    - name: Run Nike Monitor
+      run: python nike_monitor.py
+      env:
+        PYTHONUNBUFFERED: 1
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+    
+    - name: Upload logs
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: nike-monitor-logs-${{ github.run_number }}
+        path: nike_monitor.log
+        retention-days: 7
