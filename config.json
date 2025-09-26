@@ -1,0 +1,24 @@
+{
+  "search_terms": ["Nike Air Force 1 Low", "City Pack Paris", "Patent"],
+  "nike_search_url": "https://www.nike.com/w/air-force-1-aq0113",
+  "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+  "check_interval": 60,
+  "single_run": false,
+  "email_notifications": {
+    "enabled": false,
+    "smtp_server": "smtp.gmail.com",
+    "smtp_port": 587,
+    "sender_email": "your-email@gmail.com",
+    "sender_password": "your-app-password",
+    "recipient_email": "recipient@gmail.com"
+  },
+  "telegram": {
+    "enabled": true,
+    "bot_token": "YOUR_BOT_TOKEN_HERE",
+    "chat_id": "YOUR_CHAT_ID_HERE"
+  },
+  "discord_webhook": {
+    "enabled": false,
+    "webhook_url": "https://discord.com/api/webhooks/YOUR_WEBHOOK_URL"
+  }
+}
