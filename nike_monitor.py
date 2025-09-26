@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Simple Nike Monitor Bot
-Monitors Nike for Air Force 1 City Pack Paris (Patent) availability
+Multi-Country Nike Monitor Bot
+Monitors Nike for Air Force 1 City Pack Paris across multiple countries
 """
 
 import json
@@ -29,13 +29,32 @@ class NikeMonitor:
             with open(config_file, 'r') as f:
                 return json.load(f)
         except FileNotFoundError:
-            # Default config
+            # Default config with multi-country support
             return {
-                "search_terms": ["Nike Air Force 1 Low", "City Pack Paris", "Patent"],
-                "nike_search_url": "https://www.nike.com/w/air-force-1-aq0113",
+                "search_terms": ["Nike Air Force 1", "City Pack", "Paris"],
                 "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
                 "check_interval": 30,
                 "single_run": False,
+                "countries": {
+                    "germany": {
+                        "nike_search_url": "https://www.nike.com/de/w/air-force-1-aq0113",
+                        "currency": "EUR",
+                        "enabled": True,
+                        "country_code": "DE"
+                    },
+                    "switzerland": {
+                        "nike_search_url": "https://www.nike.com/ch/de/w/air-force-1-aq0113",
+                        "currency": "CHF", 
+                        "enabled": True,
+                        "country_code": "CH"
+                    },
+                    "austria": {
+                        "nike_search_url": "https://www.nike.com/at/w/air-force-1-aq0113",
+                        "currency": "EUR",
+                        "enabled": True,
+                        "country_code": "AT"
+                    }
+                },
                 "telegram": {
                     "enabled": True,
                     "bot_token": os.getenv('TELEGRAM_BOT_TOKEN'),
@@ -55,14 +74,17 @@ class NikeMonitor:
         )
         self.logger = logging.getLogger(__name__)
     
-    def check_nike_availability(self):
-        """Check Nike website for product availability"""
+    def check_nike_availability_single_country(self, country_config, country_name):
+        """Check Nike website for product availability in a specific country"""
         try:
             headers = {'User-Agent': self.config['user_agent']}
-            response = requests.get(self.config['nike_search_url'], headers=headers, timeout=15)
+            nike_url = country_config['nike_search_url']
+            
+            self.logger.info(f"Checking {country_name}: {nike_url}")
+            response = requests.get(nike_url, headers=headers, timeout=15)
             
             if response.status_code != 200:
-                self.logger.error(f"HTTP {response.status_code} from Nike")
+                self.logger.error(f"HTTP {response.status_code} from Nike {country_name}")
                 return []
             
             soup = BeautifulSoup(response.content, 'html.parser')
@@ -73,6 +95,8 @@ class NikeMonitor:
             if not product_cards:
                 # Alternative selector
                 product_cards = soup.find_all('a', href=re.compile(r'/t/'))
+            
+            self.logger.info(f"Found {len(product_cards)} product cards in {country_name}")
             
             for card in product_cards:
                 try:
@@ -94,7 +118,9 @@ class NikeMonitor:
                     link_elem = card if card.name == 'a' else card.find('a')
                     if link_elem:
                         href = link_elem.get('href', '')
-                        product_link = urljoin('https://www.nike.com', href)
+                        # Build full URL with country domain
+                        base_domain = nike_url.split('/w/')[0]  # Extract base domain
+                        product_link = urljoin(base_domain, href)
                     
                     # Get price
                     price_elem = card.find(class_=re.compile(r'price|product-price'))
@@ -103,6 +129,8 @@ class NikeMonitor:
                     
                     # Check if this matches our search terms
                     if self.matches_search_terms(product_name):
+                        self.logger.info(f"Found matching product in {country_name}: {product_name}")
+                        
                         # Get detailed product info
                         detailed_info = self.get_product_details(product_link)
                         
@@ -111,22 +139,45 @@ class NikeMonitor:
                             'price': product_price or detailed_info.get('price', 'N/A'),
                             'link': product_link,
                             'sizes': detailed_info.get('sizes', []),
-                            'in_stock': detailed_info.get('in_stock', False)
+                            'in_stock': detailed_info.get('in_stock', False),
+                            'country': country_name,
+                            'currency': country_config.get('currency', 'EUR'),
+                            'country_code': country_config.get('country_code', 'XX')
                         }
                         
                         if product_info['in_stock'] or product_info['sizes']:
                             products.append(product_info)
-                            self.logger.info(f"Found matching product: {product_name}")
                 
                 except Exception as e:
-                    self.logger.debug(f"Error parsing product card: {e}")
+                    self.logger.debug(f"Error parsing product card in {country_name}: {e}")
                     continue
             
             return products
             
         except Exception as e:
-            self.logger.error(f"Error checking Nike: {e}")
+            self.logger.error(f"Error checking Nike {country_name}: {e}")
             return []
+    
+    def check_nike_availability(self):
+        """Check Nike websites across all enabled countries"""
+        all_products = []
+        countries = self.config.get('countries', {})
+        
+        for country_name, country_config in countries.items():
+            if country_config.get('enabled', False):
+                try:
+                    products = self.check_nike_availability_single_country(country_config, country_name)
+                    all_products.extend(products)
+                    
+                    # Add delay between countries to be respectful
+                    time.sleep(2)
+                    
+                except Exception as e:
+                    self.logger.error(f"Error checking {country_name}: {e}")
+                    continue
+        
+        self.logger.info(f"Total products found across all countries: {len(all_products)}")
+        return all_products
     
     def get_product_details(self, product_url):
         """Get detailed product information from product page"""
@@ -140,11 +191,12 @@ class NikeMonitor:
             soup = BeautifulSoup(response.content, 'html.parser')
             details = {}
             
-            # Get price
+            # Get price with multiple currency patterns
             price_elem = soup.find(class_=re.compile(r'product-price|current-price'))
             if price_elem:
                 price_text = price_elem.get_text(strip=True)
-                price_match = re.search(r'[\$£€¥][\d,]+(?:\.\d{2})?', price_text)
+                # Match EUR, CHF, USD, GBP patterns
+                price_match = re.search(r'[\$£€¥]?[\d,]+(?:\.\d{2})?\s*(?:EUR|CHF|USD|GBP)?', price_text)
                 if price_match:
                     details['price'] = price_match.group(0)
             
@@ -158,10 +210,19 @@ class NikeMonitor:
             details['sizes'] = sizes
             details['in_stock'] = len(sizes) > 0
             
-            # Check for "Add to Bag" button
-            add_to_bag = soup.find('button', text=re.compile(r'Add to Bag|Add to Cart', re.I))
-            if add_to_bag and not add_to_bag.get('disabled'):
-                details['in_stock'] = True
+            # Check for "Add to Bag" button in different languages
+            add_to_bag_patterns = [
+                r'Add to Bag|Add to Cart',  # English
+                r'In den Warenkorb',        # German
+                r'Ajouter au panier',       # French
+                r'Aggiungi al carrello'     # Italian
+            ]
+            
+            for pattern in add_to_bag_patterns:
+                add_to_bag = soup.find('button', text=re.compile(pattern, re.I))
+                if add_to_bag and not add_to_bag.get('disabled'):
+                    details['in_stock'] = True
+                    break
             
             return details
             
@@ -275,25 +336,44 @@ class NikeMonitor:
             return False
     
     def format_notification(self, products):
-        """Format notification message"""
+        """Format notification message with multi-country support"""
         if not products:
-            return f"🔍 **Nike Monitor Status**\n\n**Status:** No AF1 City Pack Paris found\n**Time:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}\n**Next check:** 5 minutes"
+            enabled_countries = [name for name, config in self.config.get('countries', {}).items() 
+                               if config.get('enabled', False)]
+            countries_str = ", ".join([c.upper() for c in enabled_countries])
+            
+            return f"🔍 **Nike Monitor Status**\n\n**Status:** No AF1 City Pack Paris found\n**Countries:** {countries_str}\n**Time:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}\n**Next check:** 5 minutes"
         
-        message_lines = ["🚨 **NIKE ALERT — AF1 City Pack Paris (Patent)**\n"]
+        message_lines = ["🚨 **NIKE ALERT — AF1 City Pack Paris**\n"]
         
+        # Group products by country
+        products_by_country = {}
         for product in products:
-            message_lines.append(f"**Product:** {product['name']}")
-            message_lines.append(f"**Price:** {product['price']}")
+            country = product.get('country', 'Unknown')
+            if country not in products_by_country:
+                products_by_country[country] = []
+            products_by_country[country].append(product)
+        
+        for country, country_products in products_by_country.items():
+            message_lines.append(f"**🌍 {country.upper()}:**")
             
-            if product['sizes']:
-                sizes_str = ", ".join(product['sizes'])
-                message_lines.append(f"**Available Sizes:** {sizes_str}")
-            else:
-                message_lines.append("**Sizes:** Check website")
-            
-            message_lines.append(f"**Time:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}")
-            message_lines.append(f"🛒 **BUY NOW:** {product['link']}")
-            message_lines.append("")  # Empty line between products
+            for product in country_products:
+                currency = product.get('currency', '')
+                price = product.get('price', 'N/A')
+                
+                message_lines.append(f"**Product:** {product['name']}")
+                message_lines.append(f"**Price:** {price} {currency}")
+                
+                if product['sizes']:
+                    sizes_str = ", ".join(product['sizes'])
+                    message_lines.append(f"**Available Sizes:** {sizes_str}")
+                else:
+                    message_lines.append("**Sizes:** Check website")
+                
+                message_lines.append(f"🛒 **BUY NOW:** {product['link']}")
+                message_lines.append("")  # Empty line between products
+        
+        message_lines.append(f"**Time:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}")
         
         return "\n".join(message_lines)
     
@@ -304,14 +384,18 @@ class NikeMonitor:
     
     def run(self):
         """Main run loop"""
-        self.logger.info("Starting Nike Monitor")
+        enabled_countries = [name for name, config in self.config.get('countries', {}).items() 
+                           if config.get('enabled', False)]
+        
+        self.logger.info(f"Starting Multi-Country Nike Monitor")
+        self.logger.info(f"Monitoring countries: {', '.join([c.upper() for c in enabled_countries])}")
         
         single_run = self.config.get('single_run', False)
         check_interval = self.config.get('check_interval', 30)
         
         while True:
             try:
-                self.logger.info("Checking Nike for availability...")
+                self.logger.info("Checking Nike for availability across all countries...")
                 products = self.check_nike_availability()
                 
                 if self.should_notify(products):
