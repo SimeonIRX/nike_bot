@@ -1,4 +1,4 @@
-name: Nike Monitor Bot
+name: Multi-Country Nike Monitor Bot
 
 on:
   schedule:
@@ -11,7 +11,7 @@ on:
 jobs:
   monitor:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15  # Increased timeout for multiple countries
     
     steps:
     - name: Checkout repository
@@ -49,11 +49,48 @@ jobs:
       run: |
         cat > config.json << EOF
         {
-          "search_terms": ["Nike Air Force 1 Low", "City Pack Paris", "Patent"],
-          "nike_search_url": "https://www.nike.com/w/air-force-1-aq0113",
+          "search_terms": ["Nike Air Force 1", "City Pack", "Paris"],
           "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
           "check_interval": 30,
           "single_run": true,
+          "countries": {
+            "germany": {
+              "nike_search_url": "https://www.nike.com/de/w/air-force-1-aq0113",
+              "currency": "EUR",
+              "enabled": true,
+              "country_code": "DE"
+            },
+            "switzerland": {
+              "nike_search_url": "https://www.nike.com/ch/de/w/air-force-1-aq0113",
+              "currency": "CHF",
+              "enabled": true,
+              "country_code": "CH"
+            },
+            "austria": {
+              "nike_search_url": "https://www.nike.com/at/w/air-force-1-aq0113",
+              "currency": "EUR",
+              "enabled": true,
+              "country_code": "AT"
+            },
+            "netherlands": {
+              "nike_search_url": "https://www.nike.com/nl/w/air-force-1-aq0113",
+              "currency": "EUR",
+              "enabled": ${{ secrets.MONITOR_NETHERLANDS || 'false' }},
+              "country_code": "NL"
+            },
+            "france": {
+              "nike_search_url": "https://www.nike.com/fr/w/air-force-1-aq0113",
+              "currency": "EUR",
+              "enabled": ${{ secrets.MONITOR_FRANCE || 'false' }},
+              "country_code": "FR"
+            },
+            "italy": {
+              "nike_search_url": "https://www.nike.com/it/w/air-force-1-aq0113",
+              "currency": "EUR",
+              "enabled": ${{ secrets.MONITOR_ITALY || 'false' }},
+              "country_code": "IT"
+            }
+          },
           "email_notifications": {
             "enabled": ${{ secrets.EMAIL_ENABLED || 'false' }},
             "smtp_server": "${{ secrets.SMTP_SERVER || 'smtp.gmail.com' }}",
@@ -74,7 +111,7 @@ jobs:
         }
         EOF
     
-    - name: Run Nike Monitor
+    - name: Run Multi-Country Nike Monitor
       run: python nike_monitor.py
       env:
         PYTHONUNBUFFERED: 1
