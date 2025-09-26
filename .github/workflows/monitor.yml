@@ -23,7 +23,7 @@ jobs:
         python-version: '3.11'
     
     - name: Cache pip dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/.cache/pip
         key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
@@ -31,7 +31,7 @@ jobs:
           ${{ runner.os }}-pip-
     
     - name: Cache state file
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           last_notification.json
@@ -82,7 +82,7 @@ jobs:
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
     
     - name: Upload logs
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: nike-monitor-logs-${{ github.run_number }}
