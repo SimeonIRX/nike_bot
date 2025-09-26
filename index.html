@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nike Air Force 1 City Pack Paris - Release Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            font-weight: 800;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: fadeInUp 1s ease-out;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+
+        .card h2 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .countdown {
+            text-align: center;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .countdown-timer {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .countdown-item {
+            text-align: center;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+
+        .countdown-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            line-height: 1;
+        }
+
+        .countdown-label {
+            font-size: 0.9em;
+            margin-top: 5px;
+            opacity: 0.9;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-active { background: #2ecc71; }
+        .status-pending { background: #f39c12; }
+        .status-error { background: #e74c3c; }
+
+        .country-list {
+            list-style: none;
+        }
+
+        .country-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .country-name {
+            font-weight: 600;
+        }
+
+        .price {
+            color: #f39c12;
+            font-weight: bold;
+        }
+
+        .product-details {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .detail-label {
+            opacity: 0.8;
+        }
+
+        .detail-value {
+            font-weight: 600;
+        }
+
+        .links {
+            display: grid;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .link-button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            text-align: center;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .link-button:hover {
+            background: transparent;
+            border-color: white;
+            transform: scale(1.05);
+        }
+
+        .monitoring-status {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+        }
+
+        .last-check {
+            opacity: 0.7;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .countdown-timer {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏆 Nike Air Force 1</h1>
+            <p>City Pack Paris (Patent) - Release Tracker</p>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <h2>⏰ Release Countdown</h2>
+                <div class="countdown">
+                    <div style="font-size: 1.4em; margin-bottom: 10px;">21. Januar 2025 - 09:00 CET</div>
+                    <div class="countdown-timer" id="countdown">
+                        <div class="countdown-item">
+                            <div class="countdown-number" id="days">--</div>
+                            <div class="countdown-label">Tage</div>
+                        </div>
+                        <div class="countdown-item">
+                            <div class="countdown-number" id="hours">--</div>
+                            <div class="countdown-label">Stunden</div>
+                        </div>
+                        <div class="countdown-item">
+                            <div class="countdown-number" id="minutes">--</div>
+                            <div class="countdown-label">Minuten</div>
+                        </div>
+                        <div class="countdown-item">
+                            <div class="countdown-number" id="seconds">--</div>
+                            <div class="countdown-label">Sekunden</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card product-details">
+                <h2>👟 Produkt Details</h2>
+                <div class="detail-item">
+                    <span class="detail-label">Name</span>
+                    <span class="detail-value">Nike Air Force 1 '07 City Pack 'Paris'</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Style Code</span>
+                    <span class="detail-value">HV6226-001</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Colorway</span>
+                    <span class="detail-value">Black/Phantom/Game Royal/Black</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Gender</span>
+                    <span class="detail-value">Men</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Release Date</span>
+                    <span class="detail-value">21/01/2025</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🌍 Überwachte Länder</h2>
+                <ul class="country-list">
+                    <li class="country-item">
+                        <span class="country-name">🇩🇪 Deutschland</span>
+                        <span class="price">€129.99</span>
+                    </li>
+                    <li class="country-item">
+                        <span class="country-name">🇨🇭 Schweiz</span>
+                        <span class="price">CHF 139.00</span>
+                    </li>
+                    <li class="country-item">
+                        <span class="country-name">🇦🇹 Österreich</span>
+                        <span class="price">€129.99</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h2>📊 Monitor Status</h2>
+                <div class="status">
+                    <div class="status-dot status-active"></div>
+                    <span>Bot aktiv - Überwachung läuft</span>
+                </div>
+                <div class="status">
+                    <div class="status-dot status-active"></div>
+                    <span>Multi-Country Tracking</span>
+                </div>
+                <div class="status">
+                    <div class="status-dot status-active"></div>
+                    <span>Telegram Benachrichtigungen</span>
+                </div>
+                <div class="status">
+                    <div class="status-dot status-pending"></div>
+                    <span>SNKRS Integration</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🔗 Quick Links</h2>
+                <div class="links">
+                    <a href="https://www.nike.com/de/launch" class="link-button" target="_blank">
+                        Nike SNKRS Deutschland
+                    </a>
+                    <a href="https://www.nike.com/ch/de/launch" class="link-button" target="_blank">
+                        Nike SNKRS Schweiz
+                    </a>
+                    <a href="https://www.nike.com/de/w/air-force-1-aq0113" class="link-button" target="_blank">
+                        Air Force 1 Kollektion
+                    </a>
+                    <a href="https://github.com/SimeonlRX/nike_bot" class="link-button" target="_blank">
+                        GitHub Repository
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="monitoring-status">
+            <h3>🤖 Bot Monitoring</h3>
+            <p>Automatische Überprüfung alle 5 Minuten</p>
+            <p class="last-check">Letzte Überprüfung: <span id="lastCheck">--</span></p>
+        </div>
+    </div>
+
+    <script>
+        // Countdown Timer
+        function updateCountdown() {
+            const releaseDate = new Date('2025-01-21T08:00:00.000Z'); // 9:00 CET = 8:00 UTC
+            const now = new Date();
+            const diff = releaseDate - now;
+
+            if (diff > 0) {
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+                document.getElementById('days').textContent = days.toString().padStart(2, '0');
+                document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
+                document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
+                document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
+            } else {
+                // Release date passed
+                document.getElementById('days').textContent = '00';
+                document.getElementById('hours').textContent = '00';
+                document.getElementById('minutes').textContent = '00';
+                document.getElementById('seconds').textContent = '00';
+                
+                // Update countdown text
+                document.querySelector('.countdown div').innerHTML = '🔥 RELEASE IST LIVE! 🔥';
+            }
+        }
+
+        // Update last check time
+        function updateLastCheck() {
+            const now = new Date();
+            document.getElementById('lastCheck').textContent = now.toLocaleString('de-DE');
+        }
+
+        // Initialize
+        updateCountdown();
+        updateLastCheck();
+
+        // Update every second
+        setInterval(updateCountdown, 1000);
+        
+        // Simulate bot check updates every 5 minutes
+        setInterval(updateLastCheck, 5 * 60 * 1000);
+
+        // Add some interactivity
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('click', function() {
+                this.style.transform = 'scale(0.98)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 150);
+            });
+        });
+    </script>
+</body>
+</html>
